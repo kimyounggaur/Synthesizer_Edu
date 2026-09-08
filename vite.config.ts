@@ -1,7 +1,9 @@
 import { sites } from '@openai/sites-vite-plugin';
 import tailwindcss from '@tailwindcss/postcss';
+import { nitro } from 'nitro/vite';
 import vinext from 'vinext';
-import { defineConfig } from 'vite';
+import { fileURLToPath } from 'node:url';
+import { defineConfig, normalizePath } from 'vite';
 import hostingConfig from './.openai/hosting.json';
 
 const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
@@ -11,6 +13,7 @@ const { d1, r2 } = hostingConfig;
 
 // macOS Seatbelt blocks FSEvents, so Codex previews need polling for HMR.
 const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === 'seatbelt';
+const isVercel = Boolean(process.env.VERCEL || process.env.NITRO_PRESET === 'vercel');
 
 const localBindingConfig = {
   main: 'vinext/server/fetch-handler',
@@ -45,7 +48,37 @@ export default defineConfig(async () => {
   const { cloudflare } = await import('@cloudflare/vite-plugin');
 
   return {
-    resolve: { dedupe: ['react', 'react-dom'] },
+    resolve: {
+      dedupe: ['react', 'react-dom'],
+      // `cloudflare:workers` is a native runtime module on Workers. On Vercel,
+      // provide an empty binding object so storage-backed routes return their
+      // existing STORAGE_UNAVAILABLE response rather than failing to boot.
+      alias: isVercel
+        ? {
+            'cloudflare:workers': normalizePath(
+              fileURLToPath(new URL('./lib/vercel-env.ts', import.meta.url)),
+            ),
+            tailwindcss: normalizePath(
+              fileURLToPath(
+                new URL('./node_modules/tailwindcss/index.css', import.meta.url),
+              ),
+            ),
+            'tw-animate-css': normalizePath(
+              fileURLToPath(
+                new URL(
+                  './node_modules/tw-animate-css/dist/tw-animate.css',
+                  import.meta.url,
+                ),
+              ),
+            ),
+            'shadcn/tailwind.css': normalizePath(
+              fileURLToPath(
+                new URL('./node_modules/shadcn/dist/tailwind.css', import.meta.url),
+              ),
+            ),
+          }
+        : undefined,
+    },
     css: { postcss: { plugins: [tailwindcss()] } },
     server: isCodexSeatbeltSandbox
       ? { watch: { useFsEvents: false, usePolling: true } }
@@ -53,10 +86,14 @@ export default defineConfig(async () => {
     plugins: [
       vinext(),
       sites(),
-      cloudflare({
-        viteEnvironment: { name: 'rsc', childEnvironments: ['ssr'] },
-        config: localBindingConfig,
-      }),
+      ...(isVercel
+        ? [nitro()]
+        : [
+            cloudflare({
+              viteEnvironment: { name: 'rsc', childEnvironments: ['ssr'] },
+              config: localBindingConfig,
+            }),
+          ]),
     ],
   };
 });
