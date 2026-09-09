@@ -1,0 +1,38 @@
+id: behringer
+displayName: Behringer
+archetype: A
+status: active
+region: europe
+hosts:
+  base: [www.behringer.com]
+  assets: [cdn-media.empowertribe.com]
+policy:
+  rateLimitMs: 2000
+  pdfRateLimitMs: 5000
+  crawlBudget: 200
+  timezone: Europe/Berlin
+  preferredWindow: 02:00-06:00
+discovery:
+  strategy: static_product_page
+  seeds: [https://www.behringer.com/en/catalog.html?catalog=Category&category=C-BEHRINGER-SYNTHESIZERSANDKEYBOARDS]
+  productLinkSelector: 'a[href*="/en/products/"]'
+extraction:
+  documentLinkSelector: 'a[href$=".pdf"], a[href*="cdn-media.empowertribe.com"]'
+  languageAttr: hreflang
+models:
+  - id: behringer/model-d
+    canonicalName: MODEL D
+    aliases: [Model D, BEHRINGER MODEL D]
+    productUrl: https://www.behringer.com/en/products/0718-AAC
+    supportUrl: https://www.behringer.com/en/products/0718-AAC
+    category: synth
+healthCheck:
+  url: https://www.behringer.com/en/products/0718-AAC
+  minDocuments: 1
+evidenceUrls:
+  - https://www.behringer.com/robots.txt
+  - https://www.behringer.com/en/products/0718-AAC
+  - https://cdn-media.empowertribe.com/8c8a01b4c7ad4ef5972fdbe9a0e841de/M_BE_0718-AAC_MODEL-D_EN.pdf
+verifiedAt: 2026-09-09
+verifiedBy: codex-official-source-audit
+notes: /api는 robots 차단. 공식 제품 HTML에 노출된 링크만 사용. 현재 CDN은 cdn-media.empowertribe.com.

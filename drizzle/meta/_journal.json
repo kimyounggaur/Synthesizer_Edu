@@ -8,6 +8,13 @@
       "when": 1788800295101,
       "tag": "0000_stale_stick",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1788930218042,
+      "tag": "0001_manual_crawler",
+      "breakpoints": true
     }
   ]
 }

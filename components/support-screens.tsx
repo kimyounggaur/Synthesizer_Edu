@@ -617,3 +617,81 @@ export function PrivacyScreen({ go }: { go: (p: string) => void }) {
     </article>
   );
 }
+
+const TAKEDOWN_URL =
+  'https://github.com/kimyounggaur/Synthesizer_Edu/issues/new?title=%5B%EB%A7%A4%EB%89%B4%EC%96%BC%20%EC%9D%B4%EC%9D%98%2F%EC%82%AD%EC%A0%9C%20%EC%9A%94%EC%B2%AD%5D&labels=takedown';
+
+export function TakedownScreen({ go }: { go: (p: string) => void }) {
+  return (
+    <article className="privacy-screen narrow-screen">
+      <button className="back-button" onClick={() => go('/')}>
+        <ArrowLeft size={18} />
+        처음으로
+      </button>
+      <span className="page-eyebrow">공식 매뉴얼 링크 정책</span>
+      <h1>권리와 요청을 빠르게 확인합니다.</h1>
+      <section>
+        <h2>무엇을 공개하나요?</h2>
+        <p>
+          신디 코치는 제조사 공식 원문 링크와 제목·언어·버전·해시 같은 서지
+          정보만 공개합니다. 원본 PDF, 본문, 설명서 이미지는 앱에서 재배포하지
+          않습니다.
+        </p>
+      </section>
+      <section>
+        <h2>이의·정정·삭제 요청</h2>
+        <p>
+          권리자 또는 이용자는 잘못된 링크, 모델 연결, 권리 문제를 아래 공개
+          창구로 알려 주세요. 요청을 확인한 뒤 24시간 안에 접수 상태를 답하고,
+          조사 중에는 해당 소스를 중단할 수 있습니다.
+        </p>
+        <a href={TAKEDOWN_URL} target="_blank" rel="noreferrer">
+          매뉴얼 이의·삭제 요청 접수 <ExternalLink size={16} />
+        </a>
+      </section>
+      <section>
+        <h2>요청 후 처리</h2>
+        <p>
+          관련 소스를 일시 중단하고 비공개 원본 캐시를 삭제한 뒤, 공개 링크의
+          수정·비공개 여부를 검토합니다. 처리 과정과 담당 작업은 감사 기록에
+          남깁니다.
+        </p>
+      </section>
+    </article>
+  );
+}
+
+export function BotPolicyScreen({ go }: { go: (p: string) => void }) {
+  return (
+    <article className="privacy-screen narrow-screen">
+      <button className="back-button" onClick={() => go('/')}>
+        <ArrowLeft size={18} />
+        처음으로
+      </button>
+      <span className="page-eyebrow">SynthCoachBot</span>
+      <h1>공식 자료를 천천히, 투명하게 확인합니다.</h1>
+      <section>
+        <h2>봇 식별</h2>
+        <p>
+          사용자 에이전트는 <code>SynthCoachBot/1.0</code>이며 이 페이지와 연락
+          창구를 함께 표시합니다. 로그인, CAPTCHA, 접근 제한을 우회하지 않습니다.
+        </p>
+      </section>
+      <section>
+        <h2>수집 원칙</h2>
+        <p>
+          공식 허용 목록의 호스트만 방문하고 robots.txt를 확인합니다. 호스트별
+          동시 요청은 하나이며 HTML은 최소 2초, PDF는 최소 5초 간격을 둡니다.
+          요청 예산은 호스트마다 실행당 200건 이하입니다.
+        </p>
+      </section>
+      <section>
+        <h2>연락과 중단</h2>
+        <p>수집 중단이나 정정을 요청하면 해당 소스를 먼저 중단하고 확인합니다.</p>
+        <a href={TAKEDOWN_URL} target="_blank" rel="noreferrer">
+          연락하기 <ExternalLink size={16} />
+        </a>
+      </section>
+    </article>
+  );
+}

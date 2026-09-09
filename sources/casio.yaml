@@ -1,0 +1,37 @@
+id: casio
+displayName: Casio Computer Co., Ltd.
+archetype: C
+status: blocked
+region: asia
+hosts:
+  base: [www.casio.com, support.casio.com]
+  assets: [www.casio.com, support.casio.com]
+policy:
+  rateLimitMs: 2000
+  pdfRateLimitMs: 5000
+  crawlBudget: 200
+  timezone: Asia/Tokyo
+  preferredWindow: 02:00-06:00
+discovery:
+  strategy: product_support_search
+  seeds:
+    - https://www.casio.com/intl/electronic-musical-instruments/support.CT-X5000/
+    - https://support.casio.com/en/support/download.php?cid=008&pid=1797
+  productLinkSelector: 'a[href*="electronic-musical-instruments"]'
+extraction:
+  documentLinkSelector: 'a[href$=".pdf"], a[href*="/support/manuals/"]'
+  languageAttr: hreflang
+models:
+  - id: casio/ct-x5000
+    canonicalName: CT-X5000
+    aliases: [CTX5000, CT X5000]
+    supportUrl: https://www.casio.com/intl/electronic-musical-instruments/support.CT-X5000/
+    category: keyboard
+evidenceUrls:
+  - https://www.casio.com/robots.txt
+  - https://www.casio.com/intl/electronic-musical-instruments/support.CT-X5000/
+  - https://www.casio.com/content/dam/casio/global/support/manuals/electronic-musical-instruments/pdf/008-en/w/Web_CTX3000-ES-1B_EN.pdf
+  - https://support.casio.com/en/support/download.php?cid=008&pid=1797
+verifiedAt: 2026-09-09
+verifiedBy: codex-official-source-audit
+notes: robots는 허용하지만 주 지원 페이지가 봇 UA에 403. 사람 재검증 전 blocked 유지.

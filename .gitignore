@@ -40,4 +40,7 @@ next-env.d.ts
 /outputs/
 /work/
 
+# crawler L2/private bytes only; L1 reports remain reviewable in Git
+/.cache/manuals/
+
 .vercel

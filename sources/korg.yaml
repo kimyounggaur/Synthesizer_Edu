@@ -1,0 +1,38 @@
+id: korg
+displayName: Korg Inc.
+archetype: B
+status: active
+region: asia
+hosts:
+  base: [www.korg.com]
+  assets: [cdn.korg.com]
+policy:
+  rateLimitMs: 2000
+  pdfRateLimitMs: 5000
+  crawlBudget: 200
+  timezone: Asia/Tokyo
+  preferredWindow: 02:00-06:00
+discovery:
+  strategy: index_harvest
+  seeds: [https://www.korg.com/us/support/download/]
+  productLinkSelector: 'a[href*="/support/download/product/"]'
+  downloadLinkSelector: 'a[href*="/support/download/product/"]'
+extraction:
+  documentLinkSelector: 'a[href$=".pdf"], a[href*="cdn.korg.com"], a[href*="/support/download/manual/"]'
+  languageAttr: hreflang
+models:
+  - id: korg/phase8
+    canonicalName: phase8
+    aliases: [PHASE8, phase 8]
+    supportUrl: https://www.korg.com/us/support/download/product/0/1008/
+    category: synth
+healthCheck:
+  url: https://www.korg.com/us/support/download/product/0/1008/
+  minDocuments: 1
+evidenceUrls:
+  - https://www.korg.com/us/support/download/product/0/1008/
+  - https://www.korg.com/us/support/download/manual/0/1008/5655/
+  - https://cdn.korg.com/us/support/download/files/e6f7bb35245061f630f2b8868e78784b.pdf
+verifiedAt: 2026-09-09
+verifiedBy: codex-official-source-audit
+notes: 공식 인덱스에서 노출된 ID만 수집하며 숫자 범위 스캔을 금지. 라이선스 페이지를 공개 딥링크로 우선.

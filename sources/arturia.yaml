@@ -1,0 +1,36 @@
+id: arturia
+displayName: Arturia
+archetype: D
+status: active
+region: europe
+hosts:
+  base: [www.arturia.com]
+  assets: [dl.arturia.net]
+policy:
+  rateLimitMs: 2000
+  pdfRateLimitMs: 5000
+  crawlBudget: 200
+  timezone: Europe/Paris
+  preferredWindow: 02:00-06:00
+discovery:
+  strategy: embedded_json_first
+  seeds: [https://www.arturia.com/support/downloads-manuals/product/minifreak]
+extraction:
+  documentLinkSelector: 'a[href$=".pdf"], a[href*="dl.arturia.net/"]'
+  languageAttr: hreflang
+models:
+  - id: arturia/minifreak
+    canonicalName: MiniFreak
+    aliases: [MINIFREAK, Mini Freak]
+    supportUrl: https://www.arturia.com/support/downloads-manuals/product/minifreak
+    category: synth
+healthCheck:
+  url: https://www.arturia.com/support/downloads-manuals/product/minifreak
+  minDocuments: 1
+evidenceUrls:
+  - https://www.arturia.com/robots.txt
+  - https://www.arturia.com/support/downloads-manuals/product/minifreak
+  - https://dl.arturia.net/products/minifreak/manual/minifreak_Manual_4_0_1_EN.pdf
+verifiedAt: 2026-09-09
+verifiedBy: codex-official-source-audit
+notes: 현재 자산 호스트는 문서 초안의 downloads.arturia.net이 아니라 dl.arturia.net. JSON/내장 상태 우선, 헤드리스 미사용.

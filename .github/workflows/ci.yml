@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+          cache: npm
+      - run: npm ci
+      - name: 공개 경로 원본 자산 차단
+        shell: bash
+        run: |
+          forbidden="$(git ls-files | grep -Ei '^(public|app)/.*\.(pdf|zip)$' || true)"
+          if [ -n "$forbidden" ]; then
+            echo "::error::원본 매뉴얼 자산은 public/app에 커밋할 수 없습니다."
+            echo "$forbidden"
+            exit 1
+          fi
+      - run: npm run crawl:validate-sources
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npx drizzle-kit check
+      - name: 새 D1 마이그레이션·멱등성 검사
+        shell: bash
+        run: |
+          state="$RUNNER_TEMP/synth-coach-d1"
+          npx wrangler d1 migrations apply DB --local --config wrangler.local.json --persist-to "$state"
+          npx wrangler d1 migrations apply DB --local --config wrangler.local.json --persist-to "$state"
+          npx wrangler d1 execute DB --local --config wrangler.local.json --persist-to "$state" --command "PRAGMA foreign_key_check;" --json
+      - run: npm run build

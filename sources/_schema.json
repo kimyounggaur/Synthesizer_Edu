@@ -1,0 +1,145 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "displayName",
+    "archetype",
+    "status",
+    "region",
+    "hosts",
+    "policy",
+    "discovery",
+    "extraction",
+    "models",
+    "evidenceUrls"
+  ],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "displayName": { "type": "string", "minLength": 2 },
+    "archetype": { "enum": ["A", "B", "C", "D", "E", "X"] },
+    "status": { "enum": ["active", "blocked", "suspended", "excluded"] },
+    "region": { "enum": ["asia", "europe", "north-america"] },
+    "hosts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["base", "assets"],
+      "properties": {
+        "base": { "$ref": "#/definitions/hosts" },
+        "assets": { "$ref": "#/definitions/hosts" },
+        "excluded": { "$ref": "#/definitions/hosts" }
+      }
+    },
+    "locale": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "canonical": { "type": "string" },
+        "variants": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rateLimitMs", "crawlBudget", "timezone", "preferredWindow"],
+      "properties": {
+        "rateLimitMs": { "type": "integer", "minimum": 2000 },
+        "pdfRateLimitMs": { "type": "integer", "minimum": 5000 },
+        "crawlBudget": { "type": "integer", "minimum": 1, "maximum": 200 },
+        "timezone": { "type": "string", "minLength": 3 },
+        "preferredWindow": { "type": "string", "pattern": "^02:00-06:00$" }
+      }
+    },
+    "discovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["strategy", "seeds"],
+      "properties": {
+        "strategy": { "type": "string" },
+        "seeds": { "$ref": "#/definitions/urls" },
+        "productLinkSelector": { "type": "string" },
+        "downloadLinkSelector": { "type": "string" },
+        "supportUrlTemplate": { "type": "string" },
+        "searchUrlTemplate": { "type": "string" },
+        "jsonEndpoints": { "$ref": "#/definitions/urls" }
+      }
+    },
+    "extraction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["documentLinkSelector"],
+      "properties": {
+        "documentLinkSelector": { "type": "string", "minLength": 1 },
+        "titleSelector": { "type": "string" },
+        "languageAttr": { "type": "string" },
+        "dateSelector": { "type": "string" }
+      }
+    },
+    "normalization": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "localeReplacements": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        },
+        "suffixExpansion": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "versionPattern": { "type": "string" }
+      }
+    },
+    "models": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "canonicalName", "aliases"],
+        "properties": {
+          "id": { "type": "string" },
+          "appModelId": { "type": "string" },
+          "canonicalName": { "type": "string" },
+          "family": { "type": "string" },
+          "suffix": { "type": "string" },
+          "aliases": { "type": "array", "items": { "type": "string" } },
+          "productUrl": { "type": "string", "format": "uri" },
+          "supportUrl": { "type": "string", "format": "uri" },
+          "category": { "type": "string" },
+          "discontinued": { "type": "boolean" }
+        }
+      }
+    },
+    "healthCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["url", "minDocuments"],
+      "properties": {
+        "url": { "type": "string", "format": "uri" },
+        "minDocuments": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "evidenceUrls": { "$ref": "#/definitions/urls" },
+    "verifiedAt": { "type": "string", "format": "date" },
+    "verifiedBy": { "type": "string" },
+    "notes": { "type": "string" }
+  },
+  "definitions": {
+    "hosts": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$"
+      }
+    },
+    "urls": {
+      "type": "array",
+      "items": { "type": "string", "format": "uri", "pattern": "^https://" }
+    }
+  }
+}

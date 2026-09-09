@@ -22,6 +22,8 @@ import {
   PrivacyScreen,
   ProgressScreen,
   SettingsScreen,
+  TakedownScreen,
+  BotPolicyScreen,
 } from './support-screens';
 import { AdminScreen } from './admin-screen';
 import { catalog, MODEL_ID, type Model } from '@/lib/content';
@@ -182,6 +184,8 @@ export function CoachApp({ initialPath = '/' }: { initialPath?: string }) {
   else if (path === '/settings')
     screen = <SettingsScreen data={data} update={update} go={go} />;
   else if (path === '/privacy') screen = <PrivacyScreen go={go} />;
+  else if (path === '/takedown') screen = <TakedownScreen go={go} />;
+  else if (path === '/bot') screen = <BotPolicyScreen go={go} />;
   else if (path.startsWith('/admin')) screen = <AdminScreen go={go} />;
   else if (path.startsWith('/learn/') && path.split('/')[2] !== model?.id) {
     const requested = catalog.find((m) => m.id === path.split('/')[2]);
@@ -334,6 +338,7 @@ export function CoachApp({ initialPath = '/' }: { initialPath?: string }) {
         <footer className="app-footer">
           <span>버튼 하나부터, 나의 소리까지.</span>
           <button onClick={() => go('/privacy')}>사진 처리 안내</button>
+          <button onClick={() => go('/takedown')}>매뉴얼 이의·삭제 요청</button>
         </footer>
         {!isLesson && (
           <nav className="mobile-nav" aria-label="하단 메뉴">

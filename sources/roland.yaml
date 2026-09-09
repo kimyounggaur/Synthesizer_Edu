@@ -1,0 +1,71 @@
+id: roland
+displayName: Roland Corporation
+archetype: A
+status: active
+region: asia
+hosts:
+  base: [www.roland.com]
+  assets: [static.roland.com]
+  excluded: [proav.roland.com, www.rolandus.com]
+locale:
+  canonical: global
+  variants: [us, uk, jp, de]
+policy:
+  rateLimitMs: 2000
+  pdfRateLimitMs: 5000
+  crawlBudget: 200
+  timezone: Asia/Tokyo
+  preferredWindow: 02:00-06:00
+discovery:
+  strategy: category_harvest
+  seeds:
+    - https://www.roland.com/global/categories/synthesizers/
+    - https://www.roland.com/global/categories/keyboards/
+  productLinkSelector: 'a[href*="/global/products/"]'
+  supportUrlTemplate: https://www.roland.com/global/support/by_product/{slug}/owners_manuals/
+extraction:
+  documentLinkSelector: 'a[href$=".pdf"], a[href*="/assets/media/pdf/"]'
+  titleSelector: self
+  languageAttr: data-lang
+normalization:
+  localeReplacements: { us: global, uk: global, jp: global, de: global }
+  suffixExpansion:
+    juno-ds: ['61', '76', '88']
+    fantom: ['6', '7', '8']
+  versionPattern: '_([a-z]\d{2})_'
+models:
+  - id: roland/juno-ds61
+    appModelId: roland_juno_ds61
+    canonicalName: JUNO-DS61
+    family: JUNO-DS
+    suffix: '61'
+    aliases: [JUNO DS61, JUNODS61, 주노 DS61, JUNO-DS 61]
+    productUrl: https://www.roland.com/global/products/juno-ds/
+    supportUrl: https://www.roland.com/global/support/by_product/juno-ds61/owners_manuals/
+    category: synth
+  - id: roland/juno-ds76
+    canonicalName: JUNO-DS76
+    family: JUNO-DS
+    suffix: '76'
+    aliases: [JUNO DS76, JUNODS76, JUNO-DS 76]
+    productUrl: https://www.roland.com/global/products/juno-ds/
+    supportUrl: https://www.roland.com/global/support/by_product/juno-ds76/owners_manuals/
+    category: synth
+  - id: roland/juno-ds88
+    canonicalName: JUNO-DS88
+    family: JUNO-DS
+    suffix: '88'
+    aliases: [JUNO DS88, JUNODS88, JUNO-DS 88]
+    productUrl: https://www.roland.com/global/products/juno-ds/
+    supportUrl: https://www.roland.com/global/support/by_product/juno-ds88/owners_manuals/
+    category: synth
+healthCheck:
+  url: https://www.roland.com/global/support/by_product/juno-ds61/owners_manuals/
+  minDocuments: 1
+evidenceUrls:
+  - https://www.roland.com/robots.txt
+  - https://www.roland.com/global/support/by_product/juno-ds61/owners_manuals/
+  - https://static.roland.com/assets/media/pdf/JUNO-DS_88_76_61_eng01_W.pdf
+verifiedAt: 2026-09-09
+verifiedBy: codex-official-source-audit
+notes: 공식 support 경로와 static PDF 호스트를 실측. knowledge_base 경로는 robots 차단 대상.

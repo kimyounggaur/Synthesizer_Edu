@@ -5,6 +5,8 @@ import {
   uniqueIndex,
   index,
 } from 'drizzle-orm/sqlite-core';
+
+export * from './schema/crawler';
 export const scans = sqliteTable(
   'scans',
   {

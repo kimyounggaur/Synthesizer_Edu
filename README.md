@@ -18,6 +18,7 @@ DB 초기화 명령은 새 로컬 DB에서 한 번 실행합니다. 이미 적�
 npm run typecheck
 npm run lint
 npm test
+npm run crawl:validate-sources
 npm run test:api  # 개발 서버가 실행 중이어야 합니다.
 npm run build
 ```
@@ -50,6 +51,25 @@ JUNO-DS61 패널은 공식 문헌을 참고해 작성한 **학습용 도해**입
 | `GOOGLE_VISION_API_KEY` | 서버 전용 Google Cloud Vision 키. 브라우저에 전달하지 않습니다.            |
 | `OCR_DISABLED`          | `true`면 외부 OCR 요청을 차단합니다. 키 연결 후 `false`로 변경합니다.      |
 | `ADMIN_EMAILS`          | 플랫폼 인증으로 확인된 관리자 이메일 허용 목록. 빈 값이면 모두 거부합니다. |
+| `CRAWLER_INGEST_URL`    | 초안 상태만 받는 배포 앱의 `/api/crawler/drafts` HTTPS 주소입니다.          |
+| `CRAWLER_INGEST_TOKEN`  | GitHub Actions와 수집 API에만 저장하는 크롤러 전용 토큰입니다.              |
+| `R2_*`                  | 비공개 90일 원본 캐시용 R2 S3 자격증명입니다.                               |
+
+## 공식 매뉴얼 수집
+
+수집기는 `SEED → DISCOVER → EXTRACT → NORMALIZE → FETCH → VALIDATE → DERIVE → PUBLISH` 순서를 따릅니다. 여기서 `PUBLISH`는 공개 게시가 아니라 **D1 미검수 초안 저장**을 뜻합니다. 실제 공개는 관리자 두 명의 검증·독립 게시 단계를 거쳐야 합니다.
+
+```powershell
+npm run crawl -- --all --dry-run
+npm run crawl -- --source roland --until normalize
+npm run crawl -- --model "roland/juno-ds61" --force --dry-run
+```
+
+- L1: 공식 원문 링크·서지정보·해시만 D1 및 공개 API에 보관합니다.
+- L2: 원본 바이트는 로컬 비공개 캐시 또는 비공개 R2에 최대 90일 보관하며 앱에서 제공하지 않습니다.
+- L3: 목차·섹션·컨트롤명 후보만 D1 내부 검수용으로 보관하고 본문은 즉시 폐기합니다.
+- 크롤러는 `published`/`verified`/`rejected` 상태를 쓸 수 없습니다. 임의 SQL 토큰 대신 제한된 ingest API만 사용합니다.
+- 현재 Vercel 어댑터에는 D1/R2 런타임 바인딩이 없으므로 저장·검수 API의 운영 원본은 Cloudflare 배포입니다. Vercel 빌드는 공개 프런트엔드 미러로 유지됩니다.
 
 개발 도구와 타입/RSC의 보안 패치는 적용했습니다. `npm audit`의 잔여 항목과 제한은 [검증 기록](docs/verification.md)에 기록합니다. 비공개 Sites 접근은 사이트 소유자의 플랫폼 로그인이 필요하며, 앱 자체의 첫 학습 가입 요구와는 별개입니다.
 
@@ -63,4 +83,8 @@ React 19 + TypeScript, Next.js App Router 호환 Vinext, Cloudflare Workers/D1, 
 - [검증 기록](docs/verification.md)
 - [콘텐츠·패널 검수 인계](docs/content-review.md)
 - [API 계약](docs/api.md)
+- [크롤링 정책](docs/crawling-policy.md)
+- [소스 실측 상태](docs/sources-status.md)
+- [크롤러 운영](docs/crawler-operations.md)
+- [매뉴얼 이의·삭제 절차](docs/takedown.md)
 - [Roland 공식 설명서](https://static.roland.com/assets/media/pdf/JUNO-DS_e02_W.pdf)

@@ -1,0 +1,96 @@
+name: Official manual crawl
+
+on:
+  schedule:
+    - cron: '0 17 * * 0' # Monday 02:00 JST
+    - cron: '0 0 * * 3'  # Wednesday 01:00 CET / 02:00 CEST
+    - cron: '0 8 * * 5'  # Friday North America overnight window
+  workflow_dispatch:
+    inputs:
+      region:
+        description: Region to crawl
+        required: true
+        default: asia
+        type: choice
+        options: [asia, europe, north-america]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: official-manual-crawl-${{ github.event.schedule || inputs.region || 'manual' }}
+  cancel-in-progress: false
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      CRAWLER_INGEST_URL: ${{ secrets.CRAWLER_INGEST_URL }}
+      CRAWLER_INGEST_TOKEN: ${{ secrets.CRAWLER_INGEST_TOKEN }}
+      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+          cache: npm
+      - run: npm ci
+      - name: 실행 지역 결정
+        id: region
+        shell: bash
+        env:
+          MANUAL_REGION: ${{ inputs.region }}
+          SCHEDULE: ${{ github.event.schedule }}
+        run: |
+          region="$MANUAL_REGION"
+          if [ -z "$region" ]; then
+            case "$SCHEDULE" in
+              '0 17 * * 0') region='asia' ;;
+              '0 0 * * 3') region='europe' ;;
+              '0 8 * * 5') region='north-america' ;;
+              *) echo "::error::알 수 없는 스케줄입니다."; exit 1 ;;
+            esac
+          fi
+          echo "region=$region" >> "$GITHUB_OUTPUT"
+      - name: 필수 비밀 확인
+        shell: bash
+        run: |
+          if [ -z "$CRAWLER_INGEST_URL" ] || [ -z "$CRAWLER_INGEST_TOKEN" ]; then
+            echo "::error::CRAWLER_INGEST_URL/TOKEN을 GitHub Actions secrets에 설정하세요."
+            exit 1
+          fi
+      - run: npm run crawl:validate-sources
+      - name: 정책 적용 수집
+        id: crawl
+        continue-on-error: true
+        run: npm run crawl -- --region "${{ steps.region.outputs.region }}"
+      - name: 실행 리포트 요약
+        if: always() && steps.crawl.outcome != 'skipped'
+        run: npm run crawl:report
+      - name: 리포트 검수 PR 생성
+        if: always() && steps.crawl.outcome != 'skipped'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REGION: ${{ steps.region.outputs.region }}
+        run: |
+          if [ -z "$(git status --porcelain -- reports)" ]; then
+            exit 0
+          fi
+          branch="automation/manual-crawl-${REGION}-${GITHUB_RUN_ID}"
+          report_path="$(find reports -maxdepth 1 -type f -name 'crawl-*.md' -printf '%T@ %p\n' | sort -nr | head -1 | cut -d' ' -f2-)"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git switch -c "$branch"
+          git add reports
+          git commit -m "Report ${REGION} manual crawl"
+          git push origin "$branch"
+          gh pr create --base main --head "$branch" --title "매뉴얼 메타데이터 점검 ${REGION} $(date -u +%F)" --body-file "$report_path"
+      - name: 수집 실패 반영
+        if: steps.crawl.outcome == 'failure'
+        run: exit 1

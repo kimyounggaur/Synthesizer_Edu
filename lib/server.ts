@@ -1,9 +1,11 @@
 import { env } from 'cloudflare:workers';
 export type RuntimeEnv = {
   DB: D1Database;
+  MANUAL_CACHE?: R2Bucket;
   GOOGLE_VISION_API_KEY?: string;
   ADMIN_EMAILS?: string;
   OCR_DISABLED?: string;
+  CRAWLER_INGEST_TOKEN?: string;
 };
 export function runtime() {
   return env as unknown as RuntimeEnv;

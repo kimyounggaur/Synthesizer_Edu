@@ -1,0 +1,39 @@
+id: nord
+displayName: Clavia Digital Musical Instruments AB
+archetype: A
+status: active
+region: europe
+hosts:
+  base: [www.nordkeyboards.com]
+  assets: [www.nordkeyboards.com]
+  excluded: [assets.nordkeyboards.com]
+policy:
+  rateLimitMs: 2000
+  pdfRateLimitMs: 5000
+  crawlBudget: 200
+  timezone: Europe/Stockholm
+  preferredWindow: 02:00-06:00
+discovery:
+  strategy: static_product_downloads
+  seeds: [https://www.nordkeyboards.com/products/]
+  productLinkSelector: 'a[href*="/products/"]'
+  supportUrlTemplate: https://www.nordkeyboards.com/products/{slug}/downloads/
+extraction:
+  documentLinkSelector: 'a[href$=".pdf"], a[href*="/wt/documents/"]'
+  languageAttr: hreflang
+models:
+  - id: nord/nord-stage-4
+    canonicalName: Nord Stage 4
+    aliases: [STAGE 4, NORD STAGE4]
+    supportUrl: https://www.nordkeyboards.com/products/nord-stage-4/downloads/
+    category: stage-keyboard
+healthCheck:
+  url: https://www.nordkeyboards.com/products/nord-stage-4/downloads/
+  minDocuments: 1
+evidenceUrls:
+  - https://www.nordkeyboards.com/robots.txt
+  - https://www.nordkeyboards.com/products/nord-stage-4/downloads/
+  - https://www.nordkeyboards.com/wt/documents/951/Nord%20Stage%204%20User%20Manual%20v1.6X-Edition-N.pdf
+verifiedAt: 2026-09-09
+verifiedBy: codex-official-source-audit
+notes: 제품 다운로드와 PDF가 동일 호스트. robots 403인 assets 호스트는 제외.

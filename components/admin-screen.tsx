@@ -29,6 +29,27 @@ type AdminData = {
     model_name?: string;
   }[];
   audit: { action: string; release_id: string; created_at: string }[];
+  manuals: {
+    id: string;
+    status: string;
+    title: string;
+    doc_type: string;
+    language: string;
+    version?: string;
+    canonical_url: string;
+    canonical_name: string;
+    source_id: string;
+    display_name: string;
+    affected_content: string;
+  }[];
+  crawlIssues: {
+    id: string;
+    source_id: string;
+    document_id?: string;
+    url?: string;
+    reasons: string;
+    created_at: number;
+  }[];
   draft: unknown;
 };
 export function AdminScreen({ go }: { go: (p: string) => void }) {
@@ -129,6 +150,33 @@ export function AdminScreen({ go }: { go: (p: string) => void }) {
       setBusy(false);
     }
   }
+  async function manualAction(
+    type: 'verify' | 'publish' | 'reject' | 'takedown' | 'suspend_source',
+    manual: AdminData['manuals'][number],
+  ) {
+    setBusy(true);
+    setMessage('매뉴얼 상태를 처리하는 중…');
+    try {
+      const response = await fetch('/api/admin/manuals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: type,
+          id: manual.id,
+          sourceId: manual.source_id,
+          reason,
+        }),
+      });
+      const result = (await response.json()) as { message?: string };
+      if (!response.ok) throw new Error(result.message || '작업을 완료하지 못했어요.');
+      setMessage('매뉴얼 검수 상태와 감사 기록을 갱신했어요.');
+      await load();
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : '작업을 완료하지 못했어요.');
+    } finally {
+      setBusy(false);
+    }
+  }
   if (preview)
     return (
       <>
@@ -192,6 +240,7 @@ export function AdminScreen({ go }: { go: (p: string) => void }) {
         <TabsList className="mode-tabs">
           <TabsTrigger value="draft">초안 편집</TabsTrigger>
           <TabsTrigger value="review">검수·게시</TabsTrigger>
+          <TabsTrigger value="manuals">매뉴얼 검수</TabsTrigger>
           <TabsTrigger value="feedback">지원·피드백</TabsTrigger>
           <TabsTrigger value="audit">변경 기록</TabsTrigger>
         </TabsList>
@@ -350,6 +399,93 @@ export function AdminScreen({ go }: { go: (p: string) => void }) {
               </p>
             )}
           </div>
+        </>
+      ) : tab === 'manuals' ? (
+        <>
+          <p className="notice-box">
+            크롤러는 초안만 만듭니다. 공식 링크·모델·언어를 확인한 관리자와 다른
+            관리자가 게시해야 공개 매니페스트에 포함됩니다.
+          </p>
+          <label className="review-reason">
+            검수·게시·중단 사유 (필수)
+            <input
+              value={reason}
+              onChange={(event) => setReason(event.target.value)}
+              placeholder="확인한 근거나 처리 사유를 5자 이상 기록"
+            />
+          </label>
+          <div className="release-list">
+            {data.manuals.length ? (
+              data.manuals.map((manual) => (
+                <section key={manual.id}>
+                  <span className="pill">{manual.status}</span>
+                  <strong>{manual.canonical_name}</strong>
+                  <h3>{manual.title}</h3>
+                  <p>
+                    {manual.display_name} · {manual.doc_type} · {manual.language}
+                    {manual.version ? ` · ${manual.version}` : ''}
+                  </p>
+                  {manual.status === 'stale' && manual.affected_content && (
+                    <p className="notice-box">
+                      개정 영향 학습: {manual.affected_content}
+                    </p>
+                  )}
+                  <a href={manual.canonical_url} target="_blank" rel="noreferrer">
+                    공식 원문 확인 <ExternalLink size={14} />
+                  </a>
+                  <div className="button-row">
+                    <button
+                      className="outline-button"
+                      disabled={busy || !['draft', 'stale'].includes(manual.status)}
+                      onClick={() => manualAction('verify', manual)}
+                    >
+                      URL·매칭 검증
+                    </button>
+                    <button
+                      className="outline-button"
+                      disabled={busy || manual.status !== 'verified'}
+                      onClick={() => manualAction('publish', manual)}
+                    >
+                      독립 검토 후 게시
+                    </button>
+                    <button
+                      className="outline-button danger"
+                      disabled={busy}
+                      onClick={() => manualAction('reject', manual)}
+                    >
+                      반려
+                    </button>
+                    <button
+                      className="outline-button danger"
+                      disabled={busy}
+                      onClick={() => manualAction('takedown', manual)}
+                    >
+                      게시 중단·원본 캐시 삭제
+                    </button>
+                  </div>
+                </section>
+              ))
+            ) : (
+              <p className="empty-state">검수할 매뉴얼 초안이 없어요.</p>
+            )}
+          </div>
+          {data.crawlIssues.length > 0 && (
+            <div className="admin-records">
+              <h2>자동 게이트 보류</h2>
+              {data.crawlIssues.map((issue) => (
+                <article key={issue.id}>
+                  <span className="pill">needs_review</span>
+                  <strong>{issue.source_id}</strong>
+                  <p>{issue.reasons}</p>
+                  {issue.url && (
+                    <a href={issue.url} target="_blank" rel="noreferrer">
+                      후보 링크 확인 <ExternalLink size={14} />
+                    </a>
+                  )}
+                </article>
+              ))}
+            </div>
+          )}
         </>
       ) : tab === 'feedback' ? (
         <div className="admin-records">
